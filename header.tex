@@ -1,0 +1,41 @@
+% Colors
+\definecolor{MonashBlue}{RGB}{65,65,101}
+
+% Packages
+\usepackage{amsmath, bm, pifont}
+\usepackage{url,hyperref,booktabs,microtype}
+
+% Figures
+\graphicspath{{figs/}}
+\def\full#1{\vspace*{0.05cm}\centerline{\includegraphics[width=15cm,height=7.5cm,keepaspectratio=true]{#1}}}
+
+% Fonts
+\fontsize{13}{15}\sf
+\usepackage[scale=0.85]{sourcecodepro}
+\DisableLigatures{encoding = T1, family = tt*}
+\usepackage{fontawesome}
+\setbeamerfont{author}{size=\fontsize{14}{20}\sf}
+\setbeamerfont{title}{size=\fontsize{20}{24}\bfseries}
+
+% Monash title page
+\setbeamertemplate{title page}
+{\placefig{-0.01}{-0.01}{width=1.01\paperwidth,height=1.01\paperheight}{titlepage.jpg}
+\begin{textblock}{7.5}(7.8,0.3)\fontsize{12}{30}\sf
+\begin{flushright}
+\color{MonashBlue}
+\usebeamerfont{title}\inserttitle
+\par\vspace*{2.7cm}\par
+\usebeamerfont{author}\insertauthor
+\par\vspace*{0.4cm}\par
+\fontsize{10}{10}\sf\texttt{\href{https://robjhyndman.com/covidtalk}{robjhyndman.com/covidtalk}}
+\par\vspace*{.05cm}\par
+\includegraphics[width=4cm]{monash_bw}
+\end{flushright}
+\end{textblock}
+\begin{textblock}{6.2}(0,8.8)\pgfsetfillopacity{0.65}
+\begin{beamercolorbox}[wd=4.2cm]{block body}
+\fontsize{6}{6}\sf\color[RGB]{72,45,34}~Photo by \href{https://unsplash.com/@fusion_medical_animation}{Fusion Medical Animation} on \href{https://unsplash.com}{Unsplash}
+\end{beamercolorbox}
+\end{textblock}
+}
+

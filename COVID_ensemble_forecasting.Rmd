@@ -1,0 +1,59 @@
+---
+title: "Probabilistic ensemble forecasting of Australian COVID-19 cases"
+author: "Rob J Hyndman"
+date: ISF 2021
+fontsize: 14pt
+classoption: aspectratio=169
+toc: true
+output:
+  binb::monash:
+    fig_height: 4.33
+    fig_width: 7
+    colortheme: monashwhite
+    keep_tex: no
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  cache = TRUE,
+  dev.args = list(pointsize = 11)
+)
+options(digits = 3, width = 88)
+library(tidyverse)
+library(patchwork)
+```
+
+## Background
+
+In March 2020, I joined a team responsible for providing probabilistic forecasts of COVID-19 cases to all Australian state & territory Chief Health Officers. We use case-level data of all Australian positive COVID cases, along with nationwide surveys and mobility data from Google, Facebook and Apple. Three separate models have been built: (1) a stochastic susceptible-exposed-infectious-recovered (SEEIIR) compartmental model; (2) a stochastic epidemic model; and (3) a global autoregressive model based on public case data from 31 countries. These are then combined into a mixture ensemble to generate probabilistic forecasts of daily cases which are provided to the Australian governments each week. I will discuss the ensemble forecasting aspects of this work and how we evaluate the results.
+
+
+
+## Thanks!
+
+\placefig{10}{1.4}{trim = 30 0 0 0, clip=TRUE, width=2cm, height=2.5cm}{mitch}
+
+## More information
+\fontsize{18}{20}\sf
+
+ * Slides and papers: **robjhyndman.com**
+ * Packages: **tidyverts.org**
+ * Forecasting textbook using fable package: **OTexts.com/fpp3**
+
+\begin{textblock}{8}(7.6,4.8)
+\begin{alertblock}{Find me at ...}
+\href{https://twitter.com/robjhyndman}{\faicon{twitter} @robjhyndman}
+
+\href{https://github.com/robjhyndman}{\faicon{github}  @robjhyndman}
+
+\href{https://robjhyndman.com}{\faicon{home} robjhyndman.com}
+
+\href{mailto:rob.hyndman@monash.edu}{\faicon{envelope}  rob.hyndman@monash.edu}
+\end{alertblock}
+\end{textblock}
+\vspace*{10cm}
