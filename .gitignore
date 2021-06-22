@@ -1,2 +1,5 @@
 titlepage.png
 *.log
+.Rproj.user
+*_cache/*
+*_files/*
