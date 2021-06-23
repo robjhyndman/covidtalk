@@ -67,7 +67,7 @@ localcases <- readRDS("localcases.rds") %>%
 * Daily population mobility data from Google, Apple & Facebook
 * Weekly non-household contact surveys
 * Weekly behavioural surveys
-* Daily case data from ?? countries via the Johns Hopkins COVID-19 repository
+* Daily case numbers from many countries and regions via the Johns Hopkins COVID-19 repository
 
 ## Case numbers
 \fontsize{12}{12}\sf
@@ -128,7 +128,7 @@ Proportion of Facebook users who “stayed put”, 29 Feb -- 2~Jul~2020. Each li
 \end{block}
 \end{textblock}
 
-## Global daily case data from Johns Hopkins
+## Global daily cases by region from Johns Hopkins
 
 \begin{alertblock}{}https://github.com/CSSEGISandData/COVID-19
 \end{alertblock}
@@ -169,6 +169,12 @@ $$\tilde{p}(y_{t+h}|I_t) = \sum_{k=1}^3 w_{t+h|t,k} p_k(y_{t+h}|I_t)$$
 where $p_k(y_{t+h}|I_t)$ is the forecast distribution from model $k$, $I_t$ denotes the data available at time $t$ and the weights $w_{t+h|t,k}>0$ sum to one.
 * Also known as "linear pooling"
 * Works best when individual models are over-confident and use different data sources.
+
+## Ensemble forecasts
+
+\only<1>{\full{vic_forecasts1}}
+\only<2>{\full{vic_forecasts2}}
+\only<3>{\full{vic_forecasts3}}
 
 ## Evaluating probabilistic forecasts
 
@@ -224,6 +230,7 @@ df %>% ggplot(aes(x = error, y = qpt)) +
   geom_label(data = labels, aes(x = 0, y = 17, label = label)) +
   transition_states(state)
 ```
+
 
 ## More information
 \fontsize{20}{24}\sf
