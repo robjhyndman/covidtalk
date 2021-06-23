@@ -28,6 +28,7 @@ library(tidyverse)
 library(tsibble)
 library(feasts)
 library(fable)
+library(gganimate)
 localcases <- readRDS("localcases.rds") %>%
   select(date, state, n) %>%
   filter(state != "AUS")
@@ -81,52 +82,156 @@ localcases %>% filter(state=="VIC", date >= "2020-07-01")
 localcases %>% autoplot(n)
 ```
 
-## Mobility data
+## Google mobility data
 
-\full{mobility}
+\vspace*{0.05cm}\includegraphics[width=15cm,height=7.5cm,keepaspectratio=true]{google}
 
-## Mobility data
+\begin{textblock}{7}(8.7,1.4)
+\begin{block}{}\small
+Percentage change compared to pre-COVID-19 baseline for:
+\begin{enumerate}\tightlist
+\item[(a)] time at workplace;
+\item[(b)] time at retail/recreation;
+\item[(c)] time at transit stations.
+\end{enumerate}
+Vertical lines: physical distancing measures implemented.
+\end{block}
+\end{textblock}
 
-\full{google}
-
-## Mobility data
+## Facebook mobility data
 
 \full{facebook}
 
-## Survey data
+\begin{textblock}{5.3}(10.3,.4)
+\begin{block}{}\small
+Proportion of Facebook users who “stayed put”, 29 Feb -- 2~Jul~2020. Each line is one LGA.
+\end{block}
+\end{textblock}
 
-\full{macrodistancing}
+## Macrodistancing
 
-## Survey data
+\vspace*{0.05cm}\includegraphics[width=15cm,height=7.5cm,keepaspectratio=true]{macrodistancing}
 
-\full{microdistancing}
+\begin{textblock}{7}(8.7,1.4)
+\begin{block}{}\small
+\textbf{Estimated \# non-household contacts per day} based on nationwide weekly surveys (gray) and Google mobility data.\\ Green: public holidays.
+\end{block}
+\end{textblock}
 
-## Blah
+## Microdistancing
 
-We use case-level data of all Australian positive COVID cases, along with nationwide surveys and mobility data from Google, Facebook and Apple. Three separate models have been built: (1) a stochastic susceptible-exposed-infectious-recovered (SEEIIR) compartmental model; (2) a stochastic epidemic model; and (3) a global autoregressive model based on public case data from 31 countries. These are then combined into a mixture ensemble to generate probabilistic forecasts of daily cases which are provided to the Australian governments each week. I will discuss the ensemble forecasting aspects of this work and how we evaluate the results.
+\vspace*{0.05cm}\includegraphics[width=15cm,height=7.5cm,keepaspectratio=true]{microdistancing}
 
+\begin{textblock}{7}(8.7,1.4)
+\begin{block}{}\small
+\textbf{Estimated \% keeping 1.5m distance from non-household contacts} based on nationwide weekly surveys (gray).
+\end{block}
+\end{textblock}
 
+## Global daily case data from Johns Hopkins
 
-## Thanks!
+\begin{alertblock}{}https://github.com/CSSEGISandData/COVID-19
+\end{alertblock}
 
-\placefig{10}{1.4}{trim = 30 0 0 0, clip=TRUE, width=2cm, height=2.5cm}{mitch}
+\full{jhu_dashboard}
+
+## Model 1: SEEIIR (Uni Melbourne/Doherty Institute)
+
+* Stochastic susceptible-exposed-infectious-recovered compartmental model that incorporates changes in local transmission potential via a time-varying effective reproduction number.
+* Uses mobility and survey data and case onset and detection times.
+* Daily counts $\sim$ Negative Binomial. 
+* Time in class $\sim$ Gamma. 
+* Forecasts obtained using a bootstrap particle filter.
+
+## Model 2: Generative model (Uni Adelaide)
+
+* Uses mobility and survey data and case onset and detection times.
+* Three types of infectious individuals: imported, asymptomatic, symptomatic
+* Class counts $\sim$ Negative Binomial. 
+* Incubation times $\sim$ Gamma. 
+* Estimation via Hamilton Monte Carlo
+* Forecasts obtained via simulation
+
+## Model 3: Global AR model (Monash)
+\fontsize{14}{16}\sf
+
+* Uses Johns Hopkins data from countries and regions with sufficient data.
+* Series with obvious anomalies (negative cases and large step changes) removed.
+* $n_{t,i}=$ daily cases on day $t$ in country/region $i$ (scaled so all data have same mean and variance).
+* $y_{t,i} = \phi_1 y_{t-1,i} + \cdots +\phi_p y_{t-p,i} + \varepsilon_{t,i}$\newline where $y_{t,i} = \log(n_{t,i}+0.5)$ and $\varepsilon_{t,i}\sim N(0,\sigma_i^2)$.
+* No stationarity constraints. Common coefficients.
+* Current model has $p=24$ (selected to minimize the 7-day-ahead MAE on recent Australian data).
+
+## Forecasting ensemble
+
+* Forecasts obtained from a mixture distribution of the component models.
+$$\tilde{p}(y_{t+h}|I_t) = \sum_{k=1}^3 w_{t+h|t,k} p_k(y_{t+h}|I_t)$$
+where $p_k(y_{t+h}|I_t)$ is the forecast distribution from model $k$, $I_t$ denotes the data available at time $t$ and the weights $w_{t+h|t,k}>0$ sum to one.
+* Also known as "linear pooling"
+* Works best when individual models are over-confident and use different data sources.
+
+## Evaluating probabilistic forecasts
+
+\begin{textblock}{9.5}(0.2,1.2)
+\begin{alertblock}{}\vspace*{-0.2cm}
+\begin{align*}
+f_{p,t} &= \text{quantile forecast with prob. $p$ at time $t$.}\\
+y_{t} &= \text{observation at time $t$}
+\end{align*}
+\end{alertblock}\vspace*{-0.3cm}
+\uncover<2->{\begin{block}{Quantile score}\vspace*{-0.2cm}
+$$
+  Q_{p,t} = \begin{cases}
+  2(1 - p) \big|y_t - f_{p,t}\big|, & \text{if $y_{t} < f_{p,t}$}\\
+  2p \big|y_{t} - f_{p,t}\big|, & \text{if $y_{t} \ge f_{p,t}$} \end{cases}
+$$
+\end{block}}
+\end{textblock}
+\begin{textblock}{15}(0.2,5.6)
+\uncover<4->{
+\begin{itemize}\itemsep=0cm\parskip=0cm
+\item Low $Q_{p,t}$ is good
+\item Multiplier of 2 often omitted, but useful for interpretation
+\item $Q_{p,t}$ like absolute error (weighted to account for likely exceedance)
+\item Average $Q_{p,t}$ over $p$ = CRPS (Continuous Rank Probability Score)
+\end{itemize}}
+\end{textblock}
+\begin{textblock}{6}(10,2)
+\only<3->{\animategraphics[loop,autoplay]{10}{COVID_ensemble_forecasting_files/figure-beamer/pinball-}{1}{100}}
+\end{textblock}
+
+```{r pinball, eval=FALSE, echo=FALSE, fig.show='animate', interval=1/10, message=FALSE, fig.height=3, fig.width=5, cache=FALSE}
+# Turn eval=TRUE to recompute these graphs. They are loaded in the above animategraphics call.
+prob <- seq(0.05, 0.95, by = 0.05)
+df <- expand.grid(
+  error = c(-10, 0, 10),
+  p = c(prob, rev(head(prob, -1)[-1]))
+) %>%
+  mutate(
+    state = rep(seq(length(p) / 3), rep(3, length(p) / 3)),
+    qpt = 2 * p * error * (error > 0) - 2 * (1 - p) * error * (error < 0)
+  )
+labels <- df %>%
+  select(p, state) %>%
+  distinct() %>%
+  mutate(label = paste0("p = ", sprintf("%.2f", p)))
+df %>% ggplot(aes(x = error, y = qpt)) +
+  geom_line(aes(group = state), colour = "red") +
+  labs(
+    x = latex2exp::TeX("Error: $y_t - f_{p,t}$"),
+    y = latex2exp::TeX("Q_{p,t}")
+  ) +
+  geom_label(data = labels, aes(x = 0, y = 17, label = label)) +
+  transition_states(state)
+```
 
 ## More information
-\fontsize{18}{20}\sf
+\fontsize{20}{24}\sf
 
- * Slides and papers: **robjhyndman.com**
- * Packages: **tidyverts.org**
- * Forecasting textbook using fable package: **OTexts.com/fpp3**
+\href{https://robjhyndman.com}{\faicon{home} robjhyndman.com}
 
-\begin{textblock}{8}(7.6,4.8)
-\begin{alertblock}{Find me at ...}
 \href{https://twitter.com/robjhyndman}{\faicon{twitter} @robjhyndman}
 
 \href{https://github.com/robjhyndman}{\faicon{github}  @robjhyndman}
 
-\href{https://robjhyndman.com}{\faicon{home} robjhyndman.com}
-
 \href{mailto:rob.hyndman@monash.edu}{\faicon{envelope}  rob.hyndman@monash.edu}
-\end{alertblock}
-\end{textblock}
-\vspace*{10cm}
