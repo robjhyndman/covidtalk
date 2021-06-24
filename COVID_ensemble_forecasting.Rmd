@@ -28,7 +28,9 @@ library(tidyverse)
 library(tsibble)
 library(feasts)
 library(fable)
+library(distributional)
 library(gganimate)
+source("functions.R")
 localcases <- readRDS("localcases.rds") %>%
   select(date, state, n) %>%
   filter(state != "AUS")
@@ -73,7 +75,7 @@ localcases <- readRDS("localcases.rds") %>%
 \fontsize{12}{12}\sf
 
 ```{r, echo=TRUE}
-localcases %>% filter(state=="VIC", date >= "2020-07-01")
+localcases %>% filter(state == "VIC", date >= "2020-07-01")
 ```
 
 ## Case numbers
@@ -231,6 +233,30 @@ df %>% ggplot(aes(x = error, y = qpt)) +
   transition_states(state)
 ```
 
+## Ensemble forecasts
+
+```{r combined_forecasts, eval=FALSE}
+# Read weekly samples files from mediaflux and save as rds file
+fs::dir_ls("~/mediaflux", glob = "*.csv") %>%
+  stringr::str_subset("combined_samples_202") %>%
+  purrr::map_dfr(read_csv) %>%
+  nest(sample = sim1:sim2000) %>%
+  group_by(date, state, .model, forecast_origin) %>%
+  mutate(sample = list(unname(unlist(sample)))) %>%
+  ungroup() %>%
+  saveRDS(file="samples.rds")
+```
+
+```{r read_samples}
+samples <- readRDS("samples.rds")
+```
+
+```{r some_plots}
+samples %>% 
+  filter(forecast_origin=="2020-09-18", state=="VIC", .model=="gar") %>%
+  stateplot("VIC",localcases)
+  
+```
 
 ## More information
 \fontsize{20}{24}\sf
