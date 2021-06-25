@@ -251,12 +251,34 @@ fs::dir_ls("~/mediaflux", glob = "*.csv") %>%
 samples <- readRDS("samples.rds")
 ```
 
-```{r some_plots}
-samples %>% 
-  filter(forecast_origin=="2020-09-18", state=="VIC", .model=="gar") %>%
-  stateplot("VIC",localcases)
-  
+```{r some_plots, include=FALSE}
+vic <- samples %>% filter(state=="VIC", .model=="gar")
+origins <- sort(unique(vic$forecast_origin))
+for(i in seq_along(origins)) {
+  p <- vic %>% 
+    filter(forecast_origin == origins[i]) %>%
+    mutate(dist = dist_sample(sample)) %>%
+    select(-sample) %>%
+    as_fable(index = date, key=forecast_origin, 
+             response = "n", distribution = dist) %>%
+    autoplot(level = c(50,70,90), point_forecast = lst(median)) +
+    autolayer(filter(localcases, state=="VIC", 
+                     date <= origins[i]+42, date >= "2020-09-01"), n) +
+      scale_x_date(
+        breaks = seq(as.Date("2020-01-01"), by = "1 month", l = 36),
+        minor_breaks = NULL,
+        labels = rep(c("J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"), 3)
+      ) +
+      theme(legend.position = "none") +
+      xlab("") + ylab("Number of cases")
+  pdf(paste0(here::here("figs"), "/ensemble",i,".pdf"), 
+      width = 20 / 2.54, height = 10 / 2.54)
+  print(p)
+  crop::dev.off.crop()
+}
 ```
+
+\centerline{\animategraphics[controls,buttonsize=0.3cm,width=14cm]{10}{figs/ensemble}{1}{36}}
 
 ## More information
 \fontsize{20}{24}\sf

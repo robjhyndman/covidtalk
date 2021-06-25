@@ -222,7 +222,7 @@ stateplot <- function(fc, state,
   # Create a fable object
   fc$dist <- dist_sample(fc[[column]])
   fc <- fc %>%
-    as_fable(index = date, response = "n", distribution = dist) %>%
+    as_fable(index = date, key=forecast_origin, response = "n", distribution = dist) %>%
     filter(date <= min(date) + fc_days)
   p <- autoplot(fc, level = level, point_forecast = lst(median))
   if (!is.null(history)) {
