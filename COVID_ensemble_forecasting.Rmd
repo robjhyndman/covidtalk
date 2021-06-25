@@ -86,7 +86,7 @@ localcases %>% autoplot(n)
 
 ## Google mobility data
 
-\vspace*{0.05cm}\includegraphics[width=15cm,height=7.5cm,keepaspectratio=true]{google}
+\vspace*{-0.15cm}\includegraphics[width=15cm,height=7.7cm,keepaspectratio=true,trim=0 0 0 7,clip=true]{google}
 
 \begin{textblock}{7}(8.7,1.4)
 \begin{block}{}\small
@@ -112,7 +112,7 @@ Proportion of Facebook users who “stayed put”, 29 Feb -- 2~Jul~2020. Each li
 
 ## Macrodistancing
 
-\vspace*{0.05cm}\includegraphics[width=15cm,height=7.5cm,keepaspectratio=true]{macrodistancing}
+\vspace*{-0.15cm}\includegraphics[width=15cm,height=7.7cm,keepaspectratio=true]{macrodistancing_effect}
 
 \begin{textblock}{7}(8.7,1.4)
 \begin{block}{}\small
@@ -122,7 +122,7 @@ Proportion of Facebook users who “stayed put”, 29 Feb -- 2~Jul~2020. Each li
 
 ## Microdistancing
 
-\vspace*{0.05cm}\includegraphics[width=15cm,height=7.5cm,keepaspectratio=true]{microdistancing}
+\vspace*{-0.15cm}\includegraphics[width=15cm,height=7.7cm,keepaspectratio=true]{microdistancing_effect}
 
 \begin{textblock}{7}(8.7,1.4)
 \begin{block}{}\small
