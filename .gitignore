@@ -3,3 +3,4 @@ titlepage.png
 .Rproj.user
 *_cache/*
 *_files/*
+figs/ensemble*.pdf
