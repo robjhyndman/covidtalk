@@ -165,18 +165,80 @@ Proportion of Facebook users who “stayed put”, 29 Feb -- 2~Jul~2020. Each li
 * Current model has $p=24$ (selected to minimize the 7-day-ahead MAE on recent Australian data).
 
 ## Forecasting ensemble
+\fontsize{14}{17}\sf
 
 * Forecasts obtained from a mixture distribution of the component models.
 $$\tilde{p}(y_{t+h}|I_t) = \sum_{k=1}^3 w_{t+h|t,k} p_k(y_{t+h}|I_t)$$
 where $p_k(y_{t+h}|I_t)$ is the forecast distribution from model $k$, $I_t$ denotes the data available at time $t$ and the weights $w_{t+h|t,k}>0$ sum to one.
 * Also known as "linear pooling"
 * Works best when individual models are over-confident and use different data sources.
+* We have used equal weights $w_{t+h|t,k}=1/3$.
 
-## Ensemble forecasts
 
-\only<1>{\full{vic_forecasts1}}
-\only<2>{\full{vic_forecasts2}}
-\only<3>{\full{vic_forecasts3}}
+## Ensemble forecasts: Victoria
+
+```{r combined_forecasts, eval=FALSE}
+# Read weekly samples files from mediaflux and save as rds file
+fs::dir_ls("~/mediaflux", glob = "*.csv") %>%
+  stringr::str_subset("combined_samples_202") %>%
+  purrr::map_dfr(read_csv) %>%
+  nest(sample = sim1:sim2000) %>%
+  group_by(date, state, .model, forecast_origin) %>%
+  mutate(sample = list(unname(unlist(sample)))) %>%
+  ungroup() %>%
+  saveRDS(file = "samples.rds")
+```
+
+```{r read_samples}
+samples <- readRDS("samples.rds")
+ensemble <- make_ensemble(samples)
+```
+
+```{r some_plots, include=FALSE}
+vic_ensemble <- ensemble %>% filter(state == "VIC")
+origins <- sort(unique(vic_ensemble$forecast_origin))
+for (i in seq_along(origins)) {
+  p <- vic_ensemble %>%
+    filter(forecast_origin == origins[i], date <= origins[i] + 7 * 4) %>%
+    mutate(dist = dist_sample(sample)) %>%
+    select(-sample) %>%
+    as_fable(
+      index = date, key = forecast_origin,
+      response = "n", distribution = dist
+    ) %>%
+    autoplot(level = c(50, 70, 90), point_forecast = lst(median)) +
+    autolayer(
+      filter(localcases, state == "VIC", 
+             date >= origins[i] - 7 * 12, date <= origins[i] + 7 * 4),
+      n
+    ) +
+    scale_x_date(
+      breaks = seq(as.Date("2020-01-01"), by = "1 month", l = 24),
+      minor_breaks = NULL,
+      labels = paste(
+        rep(c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"), 2),
+        rep(2020:2021, c(12,12))
+      )
+    ) +
+    theme(legend.position = "none") +
+    xlab("") + ylab("Number of cases")
+  pdf(paste0(here::here("figs"), "/ensemble", i, ".pdf"),
+    width = 20 / 2.54, height = 10 / 2.54
+  )
+  print(p)
+  crop::dev.off.crop()
+}
+```
+
+\only<1>{\full{ensemble2}}
+\only<2>{\full{ensemble8}}
+\only<3>{\full{ensemble11}}
+\only<4>{\full{ensemble33}}
+\only<5>{\full{ensemble48}}
+\only<6>{\full{ensemble88}}
+\only<7>{\full{ensemble106}}
+
+<!-- \centerline{\animategraphics[controls,buttonsize=0.3cm,width=14cm]{5}{figs/ensemble}{1}{107}} -->
 
 ## Evaluating probabilistic forecasts
 
@@ -201,7 +263,7 @@ $$
 \item Low $Q_{p,t}$ is good
 \item Multiplier of 2 often omitted, but useful for interpretation
 \item $Q_{p,t}$ like absolute error (weighted to account for likely exceedance)
-\item Average $Q_{p,t}$ over $p$ = CRPS (Continuous Rank Probability Score)
+\item Average $Q_{p,t}$ over $p$ = CRPS (Continuous Ranked Probability Score)
 \end{itemize}}
 \end{textblock}
 \begin{textblock}{6}(10,2)
@@ -212,9 +274,9 @@ $$
 # Turn eval=TRUE to recompute these graphs. They are loaded in the above animategraphics call.
 prob <- seq(0.05, 0.95, by = 0.05)
 df <- expand.grid(
-  error = c(-10, 0, 10),
-  p = c(prob, rev(head(prob, -1)[-1]))
-) %>%
+    error = c(-10, 0, 10),
+    p = c(prob, rev(head(prob, -1)[-1]))
+  ) %>%
   mutate(
     state = rep(seq(length(p) / 3), rep(3, length(p) / 3)),
     qpt = 2 * p * error * (error > 0) - 2 * (1 - p) * error * (error < 0)
@@ -233,52 +295,35 @@ df %>% ggplot(aes(x = error, y = qpt)) +
   transition_states(state)
 ```
 
-## Ensemble forecasts
+## CRPS
 
-```{r combined_forecasts, eval=FALSE}
-# Read weekly samples files from mediaflux and save as rds file
-fs::dir_ls("~/mediaflux", glob = "*.csv") %>%
-  stringr::str_subset("combined_samples_202") %>%
-  purrr::map_dfr(read_csv) %>%
-  nest(sample = sim1:sim2000) %>%
-  group_by(date, state, .model, forecast_origin) %>%
-  mutate(sample = list(unname(unlist(sample)))) %>%
-  ungroup() %>%
-  saveRDS(file="samples.rds")
+```{r crps}
+crps <- bind_rows(
+  ensemble %>% sample_crps(localcases) %>% mutate(Model = "Ensemble"),
+  samples %>% filter(.model == "gar") %>% sample_crps(localcases) %>% mutate(Model = "Global AR"),
+  samples %>% filter(.model == "moss") %>% sample_crps(localcases) %>% mutate(Model = "SEEIIR"),
+  samples %>% filter(.model == "uoa") %>% sample_crps(localcases) %>% mutate(Model = "Generative")
+)
 ```
 
-```{r read_samples}
-samples <- readRDS("samples.rds")
+```{r crps_plot, fig.height=4.6, fig.width=10}
+crps %>%
+  filter(
+    h >= "1 day", h <= "28 days",
+    state %in% c("NSW", "QLD", "SA", "VIC")
+  ) %>%
+  ggplot(aes(x = h, y = crps, group = Model, col = Model)) +
+  geom_line() +
+  facet_wrap(. ~ state) +
+  labs(x = "Forecast horizon", y = "CRPS")
 ```
 
-```{r some_plots, include=FALSE}
-vic <- samples %>% filter(state=="VIC", .model=="gar")
-origins <- sort(unique(vic$forecast_origin))
-for(i in seq_along(origins)) {
-  p <- vic %>% 
-    filter(forecast_origin == origins[i]) %>%
-    mutate(dist = dist_sample(sample)) %>%
-    select(-sample) %>%
-    as_fable(index = date, key=forecast_origin, 
-             response = "n", distribution = dist) %>%
-    autoplot(level = c(50,70,90), point_forecast = lst(median)) +
-    autolayer(filter(localcases, state=="VIC", 
-                     date <= origins[i]+42, date >= "2020-09-01"), n) +
-      scale_x_date(
-        breaks = seq(as.Date("2020-01-01"), by = "1 month", l = 36),
-        minor_breaks = NULL,
-        labels = rep(c("J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"), 3)
-      ) +
-      theme(legend.position = "none") +
-      xlab("") + ylab("Number of cases")
-  pdf(paste0(here::here("figs"), "/ensemble",i,".pdf"), 
-      width = 20 / 2.54, height = 10 / 2.54)
-  print(p)
-  crop::dev.off.crop()
-}
-```
+\begin{textblock}{12}(0.5,8.5)
+\begin{block}{}
+For weekly forecasts created from 17 September 2020 to 15 June 2021
+\end{block}
+\end{textblock}
 
-\centerline{\animategraphics[controls,buttonsize=0.3cm,width=14cm]{10}{figs/ensemble}{1}{36}}
 
 ## More information
 \fontsize{20}{24}\sf

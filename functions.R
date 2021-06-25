@@ -86,10 +86,10 @@ make_ensemble <- function(df, h = NULL, weight = NULL, by_forecast_origin=TRUE) 
         l == nsamples ~ sample,
         TRUE ~ list(sample(unlist(sample), size = nsamples, replace = TRUE)),
       ),
-      cumcases = case_when(
-        l == nsamples ~ cumcases,
-        TRUE ~ list(sample(unlist(cumcases), size = nsamples, replace = TRUE)),
-      )
+      #cumcases = case_when(
+      #  l == nsamples ~ cumcases,
+      #  TRUE ~ list(sample(unlist(cumcases), size = nsamples, replace = TRUE)),
+      #)
     ) %>%
     ungroup() %>%
     select(-l, -nsamples)
@@ -99,7 +99,7 @@ make_ensemble <- function(df, h = NULL, weight = NULL, by_forecast_origin=TRUE) 
     group_by(date, state, forecast_origin) %>%
     summarise(
       sample = list(c(unlist(sample))),
-      cumcases = list(c(unlist(cumcases))),
+      #cumcases = list(c(unlist(cumcases))),
       .groups="keep"
     ) %>%
     group_by(state, forecast_origin) %>%
@@ -174,103 +174,3 @@ weight_surface_plot <- function(surface, filename=NULL) {
   return(p)
 }
 
-
-# Function to produce graphs
-# Assume fc is a tibble with columns date, state and sample
-
-stateplot <- function(fc, state,
-                      history,
-                      cumulative = FALSE,
-                      level = c(50, 70, 90),
-                      filename = NULL,
-                      ylim = NULL,
-                      fc_days = Inf) {
-  # Is there available data?
-  fc <- filter(fc, state == !!state) %>%
-    arrange(date)
-  history <- filter(history, state == !!state) %>%
-    arrange(date)
-  if (NROW(fc) == 0) {
-    if (NROW(history) == 0) {
-      warning(paste("Missing data:", {{ state }}))
-    }
-    return(ggplot() +
-             theme_void())
-  }
-
-  # Do we want a cumulative plot?
-  if (cumulative) {
-    # Create cumulative historical cases
-    history <- history %>%
-      mutate(n = cumsum(n))
-    # Add current level to cumulative future cases
-    current_cumcases <- history %>%
-      filter(date == max(date)) %>%
-      as_tibble() %>%
-      select(state, n)
-    fc <- fc %>%
-      left_join(current_cumcases, by = "state") %>%
-      group_by(date) %>%
-      mutate(cumcases = list(c(unlist(cumcases) + n))) %>%
-      select(date, cumcases) %>%
-      ungroup()
-    column <- "cumcases"
-  } else {
-    column <- "sample"
-  }
-
-  # Create a fable object
-  fc$dist <- dist_sample(fc[[column]])
-  fc <- fc %>%
-    as_fable(index = date, key=forecast_origin, response = "n", distribution = dist) %>%
-    filter(date <= min(date) + fc_days)
-  p <- autoplot(fc, level = level, point_forecast = lst(median))
-  if (!is.null(history)) {
-    p <- p + autolayer(filter(history, date >= "2020-02-28"), n)
-  }
-  p <- p +
-    ggtitle(state) +
-    scale_x_date(
-      breaks = seq(as.Date("2020-01-01"), by = "1 month", l = 36),
-      minor_breaks = NULL,
-      labels = rep(c("J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"), 3)
-    ) +
-    theme(legend.position = "none") +
-    xlab("") + ylab("Number of cases")
-
-  # Y limits set to min of 10
-  maxy <- max(10, p$layers[[1]]$data$hilo$upper, p$layers[[5]]$data$n)
-  p <- p + ylim(0,maxy)
-  # Truncate y axis if required
-  if(!is.null(ylim))
-    p <- p + coord_cartesian(ylim=ylim)
-
-  # Create pdf if file name exists. Otherwise return plot
-  if (is.null(filename)) {
-    return(p)
-  }
-
-  pdf(paste0(here::here(""), filename), width = 22 / 2.54, height = 16 / 2.54)
-  print(p)
-  dev.off()
-}
-
-plot_allstates <- function(object, filename = NULL, ...) {
-  act <- stateplot(object, state="ACT", filename = NULL, ...)
-  nsw <- stateplot(object, state="NSW", filename = NULL, ...)
-  nt <- stateplot(object, state="NT", filename = NULL, ...)
-  qld <- stateplot(object, state="QLD", filename = NULL, ...)
-  sa <- stateplot(object, state="SA", filename = NULL, ...)
-  tas <- stateplot(object, state="TAS", filename = NULL, ...)
-  vic <- stateplot(object, state="VIC", filename = NULL, ...)
-  wa <- stateplot(object, state="WA", filename = NULL, ...)
-  p <- patchwork::wrap_plots(
-    act, nsw, nt, qld, sa, tas, vic, wa,
-    nrow = 2, ncol = 4
-  ) +
-    patchwork::plot_layout(guides = "collect") & theme(legend.position = "bottom")
-  pdf(paste0(here::here(""), filename), width = 22 / 2.54, height = 16 / 2.54)
-  print(p)
-  dev.off()
-  return(p)
-}
