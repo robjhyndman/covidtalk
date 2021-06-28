@@ -196,6 +196,12 @@ where $p_k(y_{t+h}|I_t)$ is the forecast distribution from model $k$, $I_t$ deno
 
 ## Ensemble forecasts: Victoria
 
+\only<1>{\full{vic_forecasts1}}
+\only<2>{\full{vic_forecasts2}}
+\only<3>{\full{vic_forecasts3}}
+
+## Ensemble forecasts: Victoria
+
 ```{r combined_forecasts, eval=FALSE}
 # Read weekly samples files from mediaflux and save as rds file
 fs::dir_ls("~/mediaflux", glob = "*.csv") %>%
