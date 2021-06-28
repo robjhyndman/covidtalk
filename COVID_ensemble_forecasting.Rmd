@@ -328,9 +328,9 @@ F_{t}(u) &= \text{Pr}(Y_{t} \le u) = \text{forecast distribution}\\
 f_{p,t} &= F^{-1}_t(p) = \text{quantile forecast with prob. $p$}\\
   Q_{p,t} &= \begin{cases}
   2(1 - p) \big|y_t - f_{p,t}\big|, & \text{if $y_{t} < f_{p,t}$}\\
-  2p \big|y_{t} - f_{p,t}\big|, & \text{if $y_{t} \ge f_{p,t}$} \end{cases}
+  2p \big|y_{t} - f_{p,t}\big|, & \text{if $y_{t} \ge f_{p,t}$} \end{cases} \\
+Y_t \text{ and } Y_t^* &\sim \text{iid with distribution $F_t$.}
 \end{align*}
-$Y_t$ and $Y_t^*$ are iid with distribution $F_t$.
 
 ###
 \begin{align*}
