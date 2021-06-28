@@ -97,9 +97,11 @@ localcases %>% filter(state == "VIC", date >= "2020-07-01")
 
 ## Case numbers
 
-```{r, echo=TRUE, fig.height=3}
-localcases %>% autoplot(n)
+```{r, echo=FALSE, fig.height=2.9}
+localcases %>% autoplot(n) + labs(x="Date of symptom onset")
 ```
+
+* Recent case numbers are uncertain and incomplete as date of onset is not known until symptoms show and a test is obtained.
 
 ## Google mobility data
 
