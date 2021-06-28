@@ -369,6 +369,12 @@ For weekly forecasts created from 17 September 2020 to 15 June 2021
 \end{block}
 \end{textblock}
 
+## What have we learned?
+
+* Diverse models in an ensemble are better than one model, especially when they use different information.
+* Understand the data, learn from the data custodians.
+* Have a well-organized workflow for data processing, modelling and generation of forecasts, including version control and reproducible scripts.
+* Communicating probabilistic forecasts is difficult, but consistent visual design is helpful.
 
 ## More information
 \fontsize{20}{24}\sf
