@@ -4,3 +4,4 @@ titlepage.png
 *_cache/*
 *_files/*
 figs/ensemble*.pdf
+*.rds
