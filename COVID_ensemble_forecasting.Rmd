@@ -31,9 +31,26 @@ library(fable)
 library(distributional)
 library(gganimate)
 source("functions.R")
-localcases <- readRDS("localcases.rds") %>%
+```
+
+```{r get_local, eval=FALSE, include=FALSE}
+localcases <- readr::read_csv("~/git/covid19ensemble/inputs/local_cases_input.csv") %>%
+    rename(
+      n = count,
+      date = date_onset
+    ) %>%
+    # Adjust count to include cases yet to be detected
+    mutate(n = n / detection_probability) %>%
+    # Remove last days with prob of detection < 0.5
+    filter(detection_probability > 0.5) %>%
+    as_tsibble(index = date, key = state) %>%
   select(date, state, n) %>%
   filter(state != "AUS")
+saveRDS(localcases,"localcases.rds")
+```
+
+```{r read_local, echo=FALSE}
+localcases <- readRDS("localcases.rds") 
 ```
 
 ## Australian Health Protection Principal Committee
