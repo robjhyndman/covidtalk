@@ -312,7 +312,27 @@ df %>% ggplot(aes(x = error, y = qpt)) +
   transition_states(state)
 ```
 
-## CRPS
+## CRPS: Continuous Ranked Probability Score
+\vspace*{-0.8cm}\fontsize{13}{14}\sf
+\begin{align*}
+y_{t} &= \text{observation at time $t$}\\
+F_{t}(u) &= \text{Pr}(Y_{t} \le u) = \text{forecast distribution}\\
+f_{p,t} &= F^{-1}_t(p) = \text{quantile forecast with prob. $p$}\\
+  Q_{p,t} &= \begin{cases}
+  2(1 - p) \big|y_t - f_{p,t}\big|, & \text{if $y_{t} < f_{p,t}$}\\
+  2p \big|y_{t} - f_{p,t}\big|, & \text{if $y_{t} \ge f_{p,t}$} \end{cases}
+\end{align*}
+$Y_t$ and $Y_t^*$ are iid with distribution $F_t$.
+
+###
+\begin{align*}
+ \text{CRPS}_t
+   & = \int_0^1 Q_{p,t}\, dp \\
+   & = \int_{-\infty}^\infty \left[F_t(u) - 1_{y_t \le u}\right]^2 du \\
+   & = \textstyle\text{E}|Y_t-y_t| - \frac{1}{2}\text{E}|Y_t-Y_t^*|
+\end{align*}
+
+## CRPS: Continuous Ranked Probability Score
 
 ```{r crps}
 crps <- bind_rows(
@@ -335,7 +355,7 @@ crps %>%
   labs(x = "Forecast horizon", y = "CRPS")
 ```
 
-\begin{textblock}{12}(0.5,8.5)
+\begin{textblock}{14.5}(0.5,8)
 \begin{block}{}
 For weekly forecasts created from 17 September 2020 to 15 June 2021
 \end{block}
