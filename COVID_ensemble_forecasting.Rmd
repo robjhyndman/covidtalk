@@ -98,7 +98,20 @@ localcases %>% filter(state == "VIC", date >= "2020-07-01")
 ## Case numbers
 
 ```{r, echo=FALSE, fig.height=2.9}
-localcases %>% autoplot(n) + labs(x="Date of symptom onset")
+state_colours <- c(
+  NSW = "#56b4e9",
+  VIC = "#0072b2",
+  QLD = "#009e73",
+  SA = "#f0e442",
+  NT = "#d55e00",
+  WA = "#e69f00",
+  TAS = "#cc79a7",
+  ACT = "#cccccc"
+)
+localcases %>% 
+  autoplot(n) + 
+  labs(x="Date of symptom onset") +
+  scale_color_manual(values = state_colours)
 ```
 
 * Recent case numbers are uncertain and incomplete as date of onset is not known until symptoms show and a test is obtained.
@@ -119,15 +132,15 @@ Vertical lines: physical distancing measures implemented.
 \end{block}
 \end{textblock}
 
-## Facebook mobility data
+<!-- ## Facebook mobility data -->
 
-\full{facebook}
+<!-- \full{facebook} -->
 
-\begin{textblock}{5.3}(10.3,.4)
-\begin{block}{}\small
-Proportion of Facebook users who “stayed put”, 29 Feb -- 2~Jul~2020. Each line is one LGA.
-\end{block}
-\end{textblock}
+<!-- \begin{textblock}{5.3}(10.3,.4) -->
+<!-- \begin{block}{}\small -->
+<!-- Proportion of Facebook users who “stayed put”, 29 Feb -- 2~Jul~2020. Each line is one LGA. -->
+<!-- \end{block} -->
+<!-- \end{textblock} -->
 
 ## Macrodistancing
 
@@ -354,13 +367,14 @@ crps <- bind_rows(
 ```{r crps_plot, fig.height=4.6, fig.width=10}
 crps %>%
   filter(
-    h >= "1 day", h <= "28 days",
+    h >= 1, h <= 20,
     state %in% c("NSW", "QLD", "SA", "VIC")
   ) %>%
   ggplot(aes(x = h, y = crps, group = Model, col = Model)) +
   geom_line() +
-  facet_wrap(. ~ state) +
-  labs(x = "Forecast horizon", y = "CRPS")
+  facet_wrap(. ~ state, scales="free_y") +
+  labs(x = "Forecast horizon (days)", y = "CRPS") +
+  scale_color_manual(values = c("#D55E00", "#0072B2","#009E73", "#CC79A7"))
 ```
 
 \begin{textblock}{14.5}(0.5,8)
