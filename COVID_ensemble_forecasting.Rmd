@@ -287,7 +287,7 @@ f_{p,t} &= \text{quantile forecast with prob. $p$ at time $t$.}\\
 y_{t} &= \text{observation at time $t$}
 \end{align*}
 \end{alertblock}\vspace*{-0.3cm}
-\uncover<2->{\begin{block}{Quantile score}\vspace*{-0.2cm}
+\uncover<2->{\begin{block}{Quantile score}\vspace*{-0.1cm}
 $$
   Q_{p,t} = \begin{cases}
   2(1 - p) \big|y_t - f_{p,t}\big|, & \text{if $y_{t} < f_{p,t}$}\\
@@ -295,7 +295,7 @@ $$
 $$
 \end{block}}
 \end{textblock}
-\begin{textblock}{15}(0.2,5.6)
+\begin{textblock}{15}(0.2,5.8)
 \uncover<4->{
 \begin{itemize}\itemsep=0cm\parskip=0cm
 \item Low $Q_{p,t}$ is good
